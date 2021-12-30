@@ -11,6 +11,7 @@ const config = {
     {
       files: ['*.js', '*.jsx',],
       'rules': {
+        'indent': ['error', 2, ],
         // doesn't work on .js files
         '@typescript-eslint/explicit-module-boundary-types': ['off',],
       },
@@ -21,7 +22,7 @@ const config = {
     'browser': false,
     'node': false,
 
-    'es2021': true,
+    // 'es2021': true,
     'jest': true,
   },
   'extends': [
@@ -41,10 +42,10 @@ const config = {
     '@typescript-eslint',
   ],
   rules: {
-    'indent': ['error', 2, ],
+    indent: ['off',],
     'linebreak-style': ['error', 'unix',],
-    'quotes': ['error', 'single',],
-    'semi': ['error', 'always',],
+    quotes: ['error', 'single',],
+    semi: ['error', 'always',],
     'comma-dangle': ['error', {
       'functions': 'only-multiline',
       'objects': 'always',
@@ -53,15 +54,19 @@ const config = {
     'no-dupe-class-members': ['off',], // allow ts function overloading
     'prefer-arrow-callback': ['off',],
     'import/no-commonjs': ['off',],
-    'max-len': ['error', { code: 120, },],
+    'max-len': ['error', { code: 160, },],
     'no-unused-vars': ['off',], // favour typescript's no-unused-vars
     'no-undef': ['off',], // favour typescript
     'no-redeclare': ['off',], // favour typescript
     'no-trailing-spaces': ['error',],
-    'eqeqeq': ['error', 'smart',],
+    eqeqeq: ['error', 'smart',],
+    '@typescript-eslint/indent': ['error', 2, ],
     '@typescript-eslint/ban-ts-comment': ['off',],
     '@typescript-eslint/no-non-null-assertion': ['off',],
     '@typescript-eslint/no-this-alias': ['off',],
+    '@typescript-eslint/no-explicit-any': ['off',],
+    '@typescript-eslint/no-namespace': ['off',],
+    '@typescript-eslint/no-empty-interface': ['off',],
   },
 };
 

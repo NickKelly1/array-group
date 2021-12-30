@@ -1,22 +1,3 @@
-# Nkp package template
-
-Template for @nkp/ npm packages.
-
-Comes with:
-
-1. Language: TypeScript & JavaScript
-2. Linting: Eslint
-3. Testing: Jest
-    - Support TypeScript test files
-    - Support e2e and unit tests
-    - Easy to configure for DOM testing
-4. Building: Rollup
-    1. Builds commonjs
-    2. Builds ES Modules (targets package.json#module)
-        - Package consumers using build tools such as `rollup` and `webpack` target package.json#module, the ES Module export of the package, for tree shaking. Tree shaking generates smaller packages and reduces build times.
-5. CI: GitHub actions
-    - Builds, tests and publishes to `npm` when a new release is created on GitHub.
-
 ## Getting started
 
 1. Clone the repository
@@ -27,13 +8,13 @@ Comes with:
     2. run `npm install`
     3. run `npm test`
 3. Find and replace placeholders in the project
-    1. ---PACKAGE-DESCRIPTION---
-    2. ---NPM-PACKAGE---
-    3. ---GITHUB-URL---
-    4. ---GITHUB-ORG-NAME---
-    5. ---GITHUB-PROJECT-NAME---
-    6. ---NPM-ORG-NAME---
-    7. ---PACKAGE-NAME---
+    1. ArrayMap holds key-array with arrays of the given value types
+    2. @nkp/array-map
+    3. https://github.com/NickKelly1/nkp-template
+    4. NickKelly1
+    5. array-map
+    6. @nkp
+    7. array-map
 4. Remove stubs and reset the repos state
     1. Remove the contents of `src/index.ts`
     2. set the testEnvironment in `jest.config.ts
@@ -43,14 +24,14 @@ Comes with:
     2. Add the token to this GitHub repositories secrets as "NPM_TOKEN"
 6. Set up the README.MD
 
-## @---NPM-ORG-NAME---/---PACKAGE-NAME---
+# @nkp/array-map
 
 Fill in the following:
 
 ```txt
-![npm version](https://badge.fury.io/js/%40---NPM-ORG-NAME---%2F---PACKAGE-NAME---.svg)
-[![Node.js Package](https://github.com/---GITHUB-ORG-NAME---/---PACKAGE-NAME---/actions/workflows/release.yml/badge.svg)](https://github.com/---GITHUB-ORG-NAME---/---GITHUB-PROJECT-NAME---/actions/workflows/release.yml)
-![Known Vulnerabilities](https://snyk.io/test/github/---GITHUB-ORG-NAME---/---GITHUB-PROJECT-NAME---/badge.svg)
+![npm version](https://badge.fury.io/js/%40@nkp%2Farray-map.svg)
+[![Node.js Package](https://github.com/NickKelly1/array-map/actions/workflows/release.yml/badge.svg)](https://github.com/NickKelly1/array-map/actions/workflows/release.yml)
+![Known Vulnerabilities](https://snyk.io/test/github/NickKelly1/array-map/badge.svg)
 ```
 
 ---DESCRIPTION-TEXT---
@@ -68,18 +49,18 @@ Fill in the following:
 ### NPM
 
 ```sh
-npm install @---NPM-ORG-NAME---/---PACKAGE-NAME---
+npm install @nkp/array-map
 ```
 
 ### Yarn
 
 ```sh
-yarn add @---NPM-ORG-NAME---/---PACKAGE-NAME---
+yarn add @nkp/array-map
 ```
 
 ### Exports
 
-`@---NPM-ORG-NAME---/---PACKAGE-NAME---` targets CommonJS and ES modules. To utilise ES modules consider using a bundler like `webpack` or `rollup`.
+`@nkp/array-map` targets CommonJS and ES modules. To utilise ES modules consider using a bundler like `webpack` or `rollup`.
 
 ## Usage
 

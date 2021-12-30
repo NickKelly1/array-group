@@ -1,5 +1,5 @@
 {
-  "window.title": "---NPM-PACKAGE---",
+  "window.title": "@nkp/array-map",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },

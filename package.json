@@ -1,21 +1,21 @@
 {
-  "name": "---NPM-PACKAGE---",
+  "name": "@nkp/array-map",
   "sideEffects": false,
   "version": "0.0.1",
-  "description": "---PACKAGE-DESCRIPTION---",
+  "description": "ArrayMap holds key-array with arrays of the given value types",
   "main": "cjs/index.js",
   "module": "es/index.js",
   "author": "Nick Kelly",
-  "homepage": "---GITHUB-URL---#readme",
-  "readme": "---GITHUB-URL---#readme",
-  "license": "Mozilla Public License Version 2.0",
+  "homepage": "https://github.com/NickKelly1/nkp-template#readme",
+  "readme": "https://github.com/NickKelly1/nkp-template#readme",
+  "license": "MIT",
   "private": false,
   "repository": {
     "type": "git",
-    "url": "---GITHUB-URL---"
+    "url": "https://github.com/NickKelly1/nkp-template"
   },
   "bugs": {
-    "url": "---GITHUB-URL---/issues"
+    "url": "https://github.com/NickKelly1/nkp-template/issues"
   },
   "engines": {
     "node": ">=12.22.6"
