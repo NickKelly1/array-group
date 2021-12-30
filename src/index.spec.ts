@@ -58,10 +58,10 @@ describe('ArrayMap', () => {
       });
     });
 
-    describe('arrayEntriesPolyfill', () => {
+    describe('getArrayEntriesPolyfill', () => {
       it('should create an iterator for array values', () => {
         const array = ['a', 'b', 'c', 'd',];
-        const iterator = ArrayMap.arrayEntriesPolyfill(array);
+        const iterator = ArrayMap.getArrayEntriesPolyfill(array);
         expect(typeof iterator.next).toBe('function');
         expect(iterator.next().value).toEqual([0, 'a',]);
         expect(iterator.next().value).toEqual([1, 'b',]);
@@ -71,10 +71,10 @@ describe('ArrayMap', () => {
       });
     });
 
-    describe('mapEntriesPolyfill', () => {
+    describe('getMapEntriesPolyfill', () => {
       it('should create an iterator for map values', () => {
         const map = new Map([['a', 0,], ['b', 1,], ['c', 2,], ['d', 3,],]);
-        const iterator = ArrayMap.mapEntriesPolyfill(map);
+        const iterator = ArrayMap.getMapEntriesPolyfill(map);
         expect(typeof iterator.next).toBe('function');
         expect(iterator.next().value).toEqual(['a', 0,]);
         expect(iterator.next().value).toEqual(['b', 1,]);
@@ -119,6 +119,15 @@ describe('ArrayMap', () => {
         expect(ArrayMap.at(array, -3)).toBe('b');
         expect(ArrayMap.at(array, -4)).toBe('a');
         expect(ArrayMap.at(array, -5)).toBe(undefined);
+      });
+    });
+
+    describe('cloneEntry', () => {
+      it('should clone an entry', () => {
+        const entry = testEntries[0]!;
+        const clone = ArrayMap.cloneEntry(entry);
+        expect(clone).not.toBe(entry);
+        expect(clone).toEqual(entry);
       });
     });
 
@@ -195,7 +204,7 @@ describe('ArrayMap', () => {
     describe('fromMap', () => {
       it('should create an ArrayMap by cloning a Map', () => {
         const group = ArrayMap.fromMap(testMap);
-        const groupMap = group.getMap();
+        const groupMap = group.getMapRef();
         expect(groupMap).not.toBe(testMap);
 
         // expect keys and values to remain similar
@@ -221,7 +230,7 @@ describe('ArrayMap', () => {
     describe('fromMapByRef', () => {
       it('should create an ArrayMap by referencing a Map', () => {
         const group = ArrayMap.fromMapByRef(testMap);
-        const groupMap = group.getMap();
+        const groupMap = group.getMapRef();
         expect(groupMap).toBe(testMap);
 
         // expect keys and values to remain similar
@@ -983,11 +992,31 @@ describe('ArrayMap', () => {
       // TODO
     });
 
-    describe('values', () => {
+    describe('toEntries', () => {
       // TODO
     });
 
-    describe('getMap', () => {
+    describe('toTuples', () => {
+      // TODO
+    });
+
+    describe('toKeys', () => {
+      // TODO
+    });
+
+    describe('toArrays', () => {
+      // TODO
+    });
+
+    describe('toValues', () => {
+      // TODO
+    });
+
+    describe('toMap', () => {
+      // TODO
+    });
+
+    describe('getMapRef', () => {
       // TODO
     });
   });
