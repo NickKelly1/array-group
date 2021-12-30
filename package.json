@@ -1,7 +1,7 @@
 {
   "name": "@nkp/array-map",
   "sideEffects": false,
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "ArrayMap holds key-array with arrays of the given value types",
   "main": "cjs/index.js",
   "module": "es/index.js",
