@@ -4,13 +4,14 @@
 [![deploy status](https://github.com/NickKelly1/array-map/actions/workflows/release.yml/badge.svg)](https://github.com/NickKelly1/array-map/actions/workflows/release.yml)
 [![known vulnerabilities](https://snyk.io/test/github/NickKelly1/array-map/badge.svg)](https://snyk.io/test/github/NickKelly1/array-map)
 
-ArrayMap holds key-array with arrays of the given value types.
+Zero dependency utility for working with one-to-many maps. ArrayMap is similar an es6 Map but the values are arrays.
 
 ## Table of contents
 
 - [Installation](#installation)
   - [npm](#npm)
   - [yarn](#yarn)
+  - [pnpm](#pnpm)
   - [Exports](#exports)
 - [Usage](#usage)
   - [ArrayMap.Uniq](#arraymapuniq)
@@ -80,19 +81,27 @@ ArrayMap holds key-array with arrays of the given value types.
   - [ArrayMap.prototype.toValues](#arraymapprototypetovalues)
   - [ArrayMap.prototype.toMap](#arraymapprototypetomap)
   - [ArrayMap.prototype.getMapRef](#arraymapprototypegetmapref)
+- [Updating Dependencies](#updating-dependencies)
+- [Publishing](#publishing)
 
 ## Installation
 
-### NPM
+### npm
 
 ```sh
-npm install @nkp/array-map
+npm install @nkp/linked-list
 ```
 
-### Yarn
+### yarn
 
 ```sh
-yarn add @nkp/array-map
+yarn add @nkp/linked-list
+```
+
+### pnpm
+
+```sh
+pnpm add @nkp/linked-list
 ```
 
 ### Exports
@@ -101,7 +110,7 @@ yarn add @nkp/array-map
 
 ## Usage
 
-### ArrayMap.Uniq
+### ArrayMap.uniq
 
 Returns a unique array clone of the given array.
 
@@ -1138,6 +1147,30 @@ const group: ArrayMap<string, number> = ArrayMap.fromEntries(entries);
 ```ts
 // example
 
+```
+
+## Updating dependencies
+
+To update dependencies run one of
+
+```sh
+# if npm
+# update package.json
+npx npm-check-updates -u
+# install
+npm install
+
+# if yarn
+# update package.json
+yarn create npm-check-updates -u
+# install
+yarn
+
+# if pnpm
+# update package.json
+pnpx npm-check-updates -u
+# install
+pnpm install
 ```
 
 ## Publishing

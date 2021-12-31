@@ -1,13 +1,13 @@
-import { ArrayMap, Entry, Tuple } from '.';
+import { ArrayMap, KeyValues, KeyValue } from '.';
 
 describe('ArrayMap', () => {
   type TestObject = Record<string, undefined | string>;
   let testObjects: TestObject[];
 
-  type TestEntry = Entry<string | undefined, TestObject>;
+  type TestEntry = KeyValues<string | undefined, TestObject>;
   let testEntries: TestEntry[];
 
-  type TestTuple = Tuple<string | undefined, TestObject>;
+  type TestTuple = KeyValue<string | undefined, TestObject>;
   let testTuples: TestTuple[];
 
   type TestMap = Map<string | undefined, TestObject[]>;

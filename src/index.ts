@@ -1,5 +1,5 @@
-export type Entry<K, V> = [key: K, values: V[]];
-export type Tuple<K, V> = [key: K, value: V];
+export type KeyValues<K, V> = [key: K, values: V[]];
+export type KeyValue<K, V> = [key: K, value: V];
 
 /**
  * Map of keys to arrays of values
@@ -121,9 +121,9 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @param ref   entry to clone
    * @returns     clone
    */
-  static cloneEntry<K, V>(entry: Entry<K, V>): Entry<K, V> {
+  static cloneEntry<K, V>(entry: KeyValues<K, V>): KeyValues<K, V> {
     const [key, values,] = entry;
-    const clone: Entry<K, V> = [key, Array.from(values),];
+    const clone: KeyValues<K, V> = [key, Array.from(values),];
     return clone;
   }
 
@@ -134,8 +134,8 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @param ref   reference to entries
    * @returns     unreferenced clone of entries
    */
-  static cloneEntries<K, V>(ref: Entry<K, V>[]): Entry<K, V>[] {
-    const clone: Entry<K, V>[] = ref.map(ArrayMap.cloneEntry);
+  static cloneEntries<K, V>(ref: KeyValues<K, V>[]): KeyValues<K, V>[] {
+    const clone: KeyValues<K, V>[] = ref.map(ArrayMap.cloneEntry);
     return clone;
   }
 
@@ -147,7 +147,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    */
   static cloneMap<K, V>(ref: Map<K, V[]>): Map<K, V[]> {
     const entriesRef = Array.from(ArrayMap.getMapEntries(ref));
-    const entriesCloned: Entry<K, V>[] = ArrayMap.cloneEntries(entriesRef);
+    const entriesCloned: KeyValues<K, V>[] = ArrayMap.cloneEntries(entriesRef);
     const mapCloned = new Map(entriesCloned);
     return mapCloned;
   }
@@ -610,15 +610,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.every}
    */
   everyEntry<U extends V>(
-    predicate: ((entry: Entry<K, V>, entryIndex: number, entries: Entry<K, V>[]) => entry is Entry<K, U>),
+    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => entry is KeyValues<K, U>),
     thisArg?: any
   ): this is ArrayMap<K, U>;
   everyEntry(
-    predicate: ((entry: Entry<K, V>, entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean;
   everyEntry(
-    predicate: ((entry: Entry<K, V>, entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -637,15 +637,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.every}
    */
   everyTuple<U extends V>(
-    predicate: ((tuple: Tuple<K, V>, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => tuple is Tuple<K, U>),
+    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => tuple is KeyValue<K, U>),
     thisArg?: any
   ): this is ArrayMap<K, U>;
   everyTuple(
-    predicate: ((tuple: Tuple<K, V>, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean;
   everyTuple(
-    predicate: ((tuple: Tuple<K, V>, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -667,15 +667,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.every}
    */
   everyValue<U extends V>(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => value is U),
+    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => value is U),
     thisArg?: any
   ): this is ArrayMap<K, U>;
   everyValue(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean;
   everyValue(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -697,15 +697,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.every}
    */
   everyKey<L extends K>(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => key is L),
+    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => key is L),
     thisArg?: any
   ): this is ArrayMap<L, K>;
   everyKey(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean;
   everyKey(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -725,15 +725,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.some}
    */
   someEntry<U extends V>(
-    predicate: ((entry: Entry<K, V>, entryIndex: number, entries: Entry<K, V>[]) => entry is Entry<K, U>),
+    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => entry is KeyValues<K, U>),
     thisArg?: any
   ): this is ArrayMap<K, U>;
   someEntry(
-    predicate: ((entry: Entry<K, V>, entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean;
   someEntry(
-    predicate: ((entry: Entry<K, V>, entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -752,15 +752,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.some}
    */
   someTuple<U extends V>(
-    predicate: ((tuple: Tuple<K, V>, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => tuple is Tuple<K, U>),
+    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => tuple is KeyValue<K, U>),
     thisArg?: any
   ): this is ArrayMap<K, U>;
   someTuple(
-    predicate: ((tuple: Tuple<K, V>, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean;
   someTuple(
-    predicate: ((tuple: Tuple<K, V>, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -782,15 +782,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.some}
    */
   someValue<U extends V>(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => value is U),
+    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => value is U),
     thisArg?: any
   ): this is ArrayMap<K, U>;
   someValue(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean;
   someValue(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -812,15 +812,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.some}
    */
   someKey<L extends K>(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => key is L),
+    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => key is L),
     thisArg?: any
   ): this is ArrayMap<L, K>;
   someKey(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean;
   someKey(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -846,7 +846,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.map}
    */
   mapEntries<L, U>(
-    callbackfn: (( value: (Entry<K, V>), entryIndex: number, entries: Entry<K, V>[]) => Entry<L, U>),
+    callbackfn: (( value: (KeyValues<K, V>), entryIndex: number, entries: KeyValues<K, V>[]) => KeyValues<L, U>),
     thisArg?: any
   ): ArrayMap<L, U> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -867,7 +867,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.map}
    */
   mapTuples<L, U>(
-    callbackfn: (( value: (Tuple<K, V>), entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => Tuple<L, U>),
+    callbackfn: (( value: (KeyValue<K, V>), entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => KeyValue<L, U>),
     thisArg?: any
   ): ArrayMap<L, U> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -891,7 +891,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.map}
    */
   mapValues<U>(
-    callbackfn: (value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => U,
+    callbackfn: (value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => U,
     thisArg?: any,
   ): ArrayMap<K, U> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -915,7 +915,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.map}
    */
   mapKeys<L>(
-    callbackfn: (key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => L,
+    callbackfn: (key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => L,
     thisArg?: any
   ): ArrayMap<L, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -938,15 +938,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.filter}
    */
   filterEntries<U extends V>(
-    callbackfn: ((entry: (Entry<K, V>), entryIndex: number, entries: Entry<K, V>[]) => entry is Entry<K, U>),
+    callbackfn: ((entry: (KeyValues<K, V>), entryIndex: number, entries: KeyValues<K, V>[]) => entry is KeyValues<K, U>),
     thisArg?: any
   ): ArrayMap<K, U>;
   filterEntries(
-    callbackfn: (entry: Entry<K, V>, entryIndex: number, entries: Entry<K, V>[]) => boolean,
+    callbackfn: (entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean,
     thisArg?: any
   ): ArrayMap<K, V>
   filterEntries(
-    callbackfn: (entry: Entry<K, V>, entryIndex: number, entries: Entry<K, V>[]) => boolean,
+    callbackfn: (entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean,
     thisArg?: any
   ): ArrayMap<K, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -967,15 +967,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.filter}
    */
   filterTuples<U extends V>(
-    callbackfn: ((tuple: (Tuple<K, V>), entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => tuple is Tuple<K, U>),
+    callbackfn: ((tuple: (KeyValue<K, V>), entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => tuple is KeyValue<K, U>),
     thisArg?: any
   ): ArrayMap<K, U>;
   filterTuples(
-    callbackfn: ((tuple: (Tuple<K, V>), entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    callbackfn: ((tuple: (KeyValue<K, V>), entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): ArrayMap<K, V>;
   filterTuples(
-    callbackfn: ((tuple: (Tuple<K, V>), entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    callbackfn: ((tuple: (KeyValue<K, V>), entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): ArrayMap<K, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -1000,15 +1000,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.filter}
    */
   filterValues<U extends V>(
-    callbackfn: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => value is U),
+    callbackfn: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => value is U),
     thisArg?: any
   ): ArrayMap<K, U>;
   filterValues(
-    callbackfn: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean),
+    callbackfn: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): ArrayMap<K, V>;
   filterValues(
-    callbackfn: (value: V, key: K, entryIndex: number, valueIndex: number, entries: Entry<K, V>[]) => boolean,
+    callbackfn: (value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean,
     thisArg?: any,
   ): ArrayMap<K, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -1033,15 +1033,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @see {@link Array.prototype.filter}
    */
   filterKeys<L extends K>(
-    callbackfn: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    callbackfn: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): ArrayMap<L, V>;
   filterKeys(
-    callbackfn: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    callbackfn: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): ArrayMap<K, V>;
   filterKeys(
-    callbackfn: ((key: K, values: V[], entryIndex: number, entries: Entry<K, V>[]) => boolean),
+    callbackfn: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
     thisArg?: any
   ): ArrayMap<K, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -1145,7 +1145,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    *
    * @returns entries
    */
-  toEntries(): Entry<K, V>[] {
+  toEntries(): KeyValues<K, V>[] {
     return Array.from(this.entries()).map(ArrayMap.cloneEntry);
   }
 
@@ -1155,7 +1155,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    *
    * @returns tuples
    */
-  toTuples(): Tuple<K, V>[] {
+  toTuples(): KeyValue<K, V>[] {
     return Array.from(this.tuples());
   }
 
