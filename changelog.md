@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.6 - 2021-12-31
+
+### Changed
+
+- Updated ArrayMap's constructor signature
+
 ## 0.0.5 - 2021-12-31
 
 ### Changed

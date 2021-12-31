@@ -272,8 +272,8 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    *
    * @param map reference to the underlying map
    */
-  constructor(map: Map<K, V[]>) {
-    this._map = map;
+  constructor(map?: Map<K, V[]> | null) {
+    this._map = map ?? new Map<K, V[]>();
   }
 
 
