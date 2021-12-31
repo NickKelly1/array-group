@@ -2,17 +2,17 @@
 
 ## 0.0.4 - 2021-12-31
 
-### Updated
+### Changed
 
-- readme.md
+- Updated readme.md
 
 ## 0.0.3 - 2021-12-31
 
-### Updated
+### Changed
 
-- readme.md
-- dependencies
-- switched from `npm` to `pnpm`
+- Updated readme.md
+- Updated dependencies
+- Switched from `npm` to `pnpm`
 
 ### Removed
 
@@ -24,7 +24,7 @@
 
 - Extra prototype methods for exporting the ArrayMap contents
 
-### Updated
+### Changed
 
 - `readme.md`
 
