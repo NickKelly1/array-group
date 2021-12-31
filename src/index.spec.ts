@@ -616,7 +616,6 @@ describe('ArrayMap', () => {
         const seen = new Set<any>();
         for (let i = values.length - 1; i >= 0; i -= 1) {
           if (seen.has(values[i])) continue;
-          console.log({ key, v: values[i], g1: group.getAt(key, i), g2: group.get(key), });
           expect(group.lastIndexOf(key, values[i]!)).toBe(i);
           seen.add(values[i]);
         }

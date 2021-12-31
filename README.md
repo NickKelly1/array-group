@@ -1,8 +1,8 @@
 # @nkp/array-map
 
-![npm version](https://badge.fury.io/js/%40@nkp%2Farray-map.svg)
-[![Node.js Package](https://github.com/NickKelly1/array-map/actions/workflows/release.yml/badge.svg)](https://github.com/NickKelly1/array-map/actions/workflows/release.yml)
-![Known Vulnerabilities](https://snyk.io/test/github/NickKelly1/array-map/badge.svg)
+[![npm version](https://badge.fury.io/js/%40nkp%2Farray-map.svg)](https://www.npmjs.com/package/@nkp/array-map)
+[![deploy status](https://github.com/NickKelly1/array-map/actions/workflows/release.yml/badge.svg)](https://github.com/NickKelly1/array-map/actions/workflows/release.yml)
+[![known vulnerabilities](https://snyk.io/test/github/NickKelly1/array-map/badge.svg)](https://snyk.io/test/github/NickKelly1/array-map)
 
 ArrayMap holds key-array with arrays of the given value types.
 
