@@ -1,8 +1,8 @@
 # @nkp/array-map
 
 [![npm version](https://badge.fury.io/js/%40nkp%2Farray-map.svg)](https://www.npmjs.com/package/@nkp/array-map)
-[![deploy status](https://github.com/NickKelly1/array-map/actions/workflows/release.yml/badge.svg)](https://github.com/NickKelly1/array-map/actions/workflows/release.yml)
-[![known vulnerabilities](https://snyk.io/test/github/NickKelly1/array-map/badge.svg)](https://snyk.io/test/github/NickKelly1/array-map)
+[![deploy status](https://github.com/NickKelly1/nkp-array-map/actions/workflows/release.yml/badge.svg)](https://github.com/NickKelly1/nkp-array-map/actions/workflows/release.yml)
+[![known vulnerabilities](https://snyk.io/test/github/NickKelly1/nkp-array-map/badge.svg)](https://snyk.io/test/github/NickKelly1/nkp-array-map)
 
 Zero dependency utility for working with one-to-many maps. ArrayMap is similar an es6 Map but the values are arrays.
 
