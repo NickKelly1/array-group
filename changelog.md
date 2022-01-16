@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.0.7 - 2022-01-16
+
+### Added
+
+- additional tests
+- `ArrayMap.prototype.sortKeysMut`
+- `ArrayMap.prototype.sortValuesMut`
+- `ArrayMap.prototype.reverseKeysMut`
+- `ArrayMap.prototype.reverseValuesMut`
+- `ArrayMap.prototype.popVacuum`
+- `ArrayMap.prototype.shiftVacuum`
+
+### Changed
+
+- updated readme.md
+
+## 0.0.6 - 2022-01-15
+
+### Added
+
+- Additional tests
+
+### Changed
+
+- Updated dependencies
+- Updated readme.md
+
+### Removed
+
+- ArrayMap.fromEntriesByRef
+
 ## 0.0.6 - 2021-12-31
 
 ### Changed

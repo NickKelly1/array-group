@@ -1,5 +1,8 @@
-export type KeyValues<K, V> = [key: K, values: V[]];
+export type KeyValues<K, V> = readonly [key: K, values: V[]];
 export type KeyValue<K, V> = [key: K, value: V];
+
+export type ROKeyValues<K, V> = readonly [key: K, values: readonly V[]];
+export type ROKeyValue<K, V> = readonly [key: K, value: V];
 
 /**
  * Map of keys to arrays of values
@@ -15,7 +18,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    *
    * @param array
    */
-  static uniq<T>(array: T[]): T[] {
+  static uniq<T>(array: readonly T[]): T[] {
     return Array.from(new Set(array));
   }
 
@@ -28,7 +31,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @param array
    * @returns
    */
-  static getArrayEntries<T>(array: T[]): IterableIterator<[number, T]> {
+  static getArrayEntries<T>(array: readonly T[]): IterableIterator<[number, T]> {
     if (typeof Array.prototype.entries === 'function') {
       return array.entries();
     }
@@ -44,7 +47,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @param array
    * @returns
    */
-  static * getArrayEntriesPolyfill<T>(array: T[]): IterableIterator<[number, T]> {
+  static * getArrayEntriesPolyfill<T>(array: readonly T[]): IterableIterator<[number, T]> {
     for (const key of array.keys()) {
       const value = array[key]!;
       yield [key, value,];
@@ -110,18 +113,20 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
    * @param index zero-based index to find
    * @returns resulting element
    */
-  static at<T>(array: T[], index: number): undefined | T {
+  static at<T>(array: readonly T[], index: number): undefined | T {
     return array[ArrayMap.calculateIndex(array.length, index)];
   }
 
 
   /**
-   * Clone the entry
+   * Create a shallow clone of the entry (key-values pair)
    *
-   * @param ref   entry to clone
-   * @returns     clone
+   * The entry array itself and the values-arrays are cloned
+   *
+   * @param ref   ArrayMap instance to clone
+   * @returns     new ArrayMap instance
    */
-  static cloneEntry<K, V>(entry: KeyValues<K, V>): KeyValues<K, V> {
+  static cloneEntry<K, V>(entry: ROKeyValues<K, V>): KeyValues<K, V> {
     const [key, values,] = entry;
     const clone: KeyValues<K, V> = [key, Array.from(values),];
     return clone;
@@ -129,21 +134,26 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Clone the entries array
+   * Clone the entries (key-values pairs)
    *
-   * @param ref   reference to entries
-   * @returns     unreferenced clone of entries
+   * The array of entries (key-values pairs), each entry and the values-arrays
+   * of each entry are cloned
+   *
+   * @param ref   entries (key-values pairs) to clone
+   * @returns     shallow clone of the entries
    */
-  static cloneEntries<K, V>(ref: KeyValues<K, V>[]): KeyValues<K, V>[] {
+  static cloneEntries<K, V>(ref: readonly KeyValues<K, V>[]): KeyValues<K, V>[] {
     const clone: KeyValues<K, V>[] = ref.map(ArrayMap.cloneEntry);
     return clone;
   }
 
 
   /**
-   * Create a new Map by cloning a previous map and its array values
+   * Create a new Map instance of entries (key-values pairs) by cloning an
+   * existing Map instance of entries
    *
-   * @param ref
+   * @param ref     Map instance of entries (key-values pairs) to clone
+   * @returns       new Map instance with cloned values-arrays
    */
   static cloneMap<K, V>(ref: Map<K, V[]>): Map<K, V[]> {
     const entriesRef = Array.from(ArrayMap.getMapEntries(ref));
@@ -154,16 +164,16 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap by grouping an array of objects by a key's
-   * corresponding value and concatenating duplicates matches
+   * Create a new ArrayMap instance by grouping an array of objects by a key's
+   * corresponding value and concatenating the values of matching keys
    *
    * @param array
    * @param by
    * @returns
    */
-  static groupBy<K extends keyof V, V>(array: V[], by: K): ArrayMap<V[K], V>;
-  static groupBy<K, V>(array: V[], by: (value: V) => K): ArrayMap<K, V>;
-  static groupBy<K, V>(array: V[], by: K | ((value: V) => K)): ArrayMap<K, V> {
+  static groupBy<K extends keyof V, V>(array: readonly V[], by: K): ArrayMap<V[K], V>;
+  static groupBy<K, V>(array: readonly V[], by: (value: V) => K): ArrayMap<K, V>;
+  static groupBy<K, V>(array: readonly V[], by: K | ((value: V) => K)): ArrayMap<K, V> {
     if (typeof by === 'function') {
       const map = new Map<K, V[]>();
       for (const value of array) {
@@ -187,12 +197,13 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap from a Map
+   * Create a new ArrayMap instance from a Map of arrays
    *
    * Clones the map and all its array values
    *
-   * @param map
-   * @returns
+   * @param map   map of entries (key-values pairs) to clone and use in the
+   *              ArrayMap
+   * @returns     new ArrayMap instance
    */
   static fromMap<K, V>(map: Map<K, V[]>): ArrayMap<K, V> {
     return new ArrayMap(this.cloneMap(map));
@@ -200,12 +211,14 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap from a Map
+   * Create a new ArrayMap instance from a Map of arrays
    *
-   * Holds references from the provided map
+   * The new ArrayMap instance holds the reference to the provided map and may
+   * mutate it
    *
-   * @param map
-   * @returns
+   * @param map   map of entries (key-values pairs) to use for the new
+   *              ArrayMap instance
+   * @returns     new ArrayMap instance
    */
   static fromMapByRef<K, V>(map: Map<K, V[]>): ArrayMap<K, V> {
     return new ArrayMap(map);
@@ -213,32 +226,15 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create an ArrayMap by grouping duplicate keys and concatenating values
-   * of key-value tuples
-   *
-   * @param array array of key--value-array tuples
-   * @returns array map
-   */
-  static fromTuples<K, V>(array: [K, V][]): ArrayMap<K, V> {
-    const map: Map<K, V[]> = new Map();
-    for (const [key, value,] of array) {
-      if (map.has(key)) map.get(key)!.push(value);
-      else map.set(key, [value,]);
-    }
-    return new ArrayMap<K, V>(map);
-  }
-
-
-  /**
-   * Create a new ArrayMap by grouping duplicate keys and concatenating
-   * array values of the entries
+   * Create an ArrayMap instance from an array of entries (key-values pairs) by
+   * grouping and concatenating the values of duplicate keys
    *
    * Clones the array values
    *
-   * @param entries
-   * @returns
+   * @param entries   array of entries (key-values pairs)
+   * @returns         new ArrayMap instance
    */
-  static fromEntries<K, V>(entries: [K, V[]][]): ArrayMap<K, V> {
+  static fromEntries<K, V>(entries: readonly ROKeyValues<K, V>[]): ArrayMap<K, V> {
     const map: Map<K, V[]> = new Map();
     for (const [key, values,] of entries) {
       if (map.has(key)) map.get(key)!.push(...values);
@@ -249,26 +245,27 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap by grouping duplicate keys and concatenating
-   * array values of the entries
+   * Create an ArrayMap instance from an array of tuples (key-value pairs) by
+   * grouping and concatenating the values of duplicate keys
    *
-   * Holds reference from the provided array values
-   *
-   * @param entries
-   * @returns
+   * @param array   array of tuples (key-value pairs)
+   * @returns       new ArrayMap instance
    */
-  static fromEntriesByRef<K, V>(entries: [K, V[]][]): ArrayMap<K, V> {
+  static fromTuples<K, V>(array: readonly ROKeyValue<K, V>[]): ArrayMap<K, V> {
     const map: Map<K, V[]> = new Map();
-    for (const [key, values,] of entries) {
-      if (map.has(key)) map.get(key)!.push(...values);
-      else map.set(key, values);
+    for (const [key, value,] of array) {
+      if (map.has(key)) map.get(key)!.push(value);
+      else map.set(key, [value,]);
     }
     return new ArrayMap<K, V>(map);
   }
 
 
   /**
-   * Create a new ArrayMap
+   * Create a new ArrayMap instance
+   *
+   * The ArrayMap instance holds the reference to the provided map and may
+   * mutate it
    *
    * @param map reference to the underlying map
    */
@@ -278,16 +275,19 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Number of keys in the array-map
+   * Number of keys in the ArrayMap instance
    */
   get size(): number {
     return this._map.size;
   }
 
   /**
-   * Clone a map's internal references, keys and values
+   * Create a new ArrayMap instance by cloning this ArrayMap instance
    *
-   * @returns unreferenced map
+   * Clones the internal Map instance used by the ArrayMap instance and the
+   * values-arrays
+   *
+   * @returns   shallowly cloned ArrayMap instance
    */
   clone(): ArrayMap<K, V> {
     const clone = ArrayMap.fromEntries(Array.from(this.entries()));
@@ -296,20 +296,20 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Return an iterator for the entries of the ArrayMap
+   * Return an iterator for the entries
    *
    * @returns
    */
-  [Symbol.iterator](): IterableIterator<[K, V[]]> {
+  [Symbol.iterator](): IterableIterator<KeyValues<K, V>> {
     return this.entries();
   }
 
 
   /**
-   * Does the key have array values?
+   * Does the key exist?
    *
-   * @param key the key to search for
-   * @returns whether the key exists in the map
+   * @param key         target key
+   * @returns           whether the key exists
    *
    * @see {@link Map.prototype.has}
    */
@@ -319,11 +319,11 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Does the array at the key have an item at the element?
+   * Does the values-array at the key have the element?
    *
-   * @param key the key to search for
-   * @param valueIndex zero based index to find at
-   * @returns whether the key exists in the map
+   * @param key           target key
+   * @param index         zero based (or -ve) target index
+   * @returns             whether the key exists in the map
    *
    * @see {@link Map.prototype.has}
    */
@@ -336,10 +336,10 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Get the array value at the key
+   * Get the values-array at the key
    *
-   * @param key the key whose value to get
-   * @returns array at the key
+   * @param key         target key
+   * @returns           values-array
    *
    * @see {@link Map.prototype.get}
    */
@@ -349,11 +349,11 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Get the array value at the key
+   * Get the values-array at the key
    *
-   * @param key the key whose value to get
-   * @param valueIndex zero-based index to get, supports negative indexing
-   * @returns value at the key and index
+   * @param key         target key
+   * @param index       zero-based (or -ve) target index
+   * @returns           values-array if it exists
    *
    * @see {@link Map.prototype.get}
    */
@@ -365,10 +365,10 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Set the array value at the key
+   * Set the values-array at the key
    *
-   * @param key the key whose value to set
-   * @param value array of values to set
+   * @param key     target key
+   * @param value   values-array
    *
    * @see {@link Map.prototype.set}
    */
@@ -378,11 +378,13 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Set the array value at the key at the index
+   * Set the value at the key at the index
    *
-   * @param key the key whose value to set
-   * @param valueIndex the index to set
-   * @param value array of values to set
+   * @param key         target key
+   * @param index       target index
+   * @param value       target value
+   *
+   * @throws            if the key does not exist
    *
    * @see {@link Map.prototype.set}
    */
@@ -392,10 +394,10 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Delete the key from the array-map
+   * Delete the key
    *
-   * @param key the key whose value to get
-   * @returns whether items were deleted
+   * @param key         target key
+   * @returns           whether the key existed
    *
    * @see {@link Map.prototype.delete}
    */
@@ -405,7 +407,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Delete all items from the array-map
+   * Delete all keys
    *
    * @see {@link Map.prototype.clear}
    */
@@ -415,7 +417,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Delete keys with zero length
+   * Delete keys whose value-arrays have length zero
    */
   vacuum(): this {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -429,13 +431,16 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
   /**
    * Get the length of the array at the key
    *
-   * @param key the key whose values to use
+   * Returns undefined if the key does not exist
+   *
+   * @param key     target key
+   * @returns       length of the values-array if it exists
    *
    * @see {@link Array.prototype.length}
    */
-  length(key: K): number {
+  length(key: K): undefined | number {
     const gotten = this._map.get(key);
-    if (!gotten) return 0;
+    if (!gotten) return undefined;
     return gotten.length;
   }
 
@@ -443,8 +448,8 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
   /**
    * Pop the last element off the array at the key
    *
-   * @param key the key whose values to use
-   * @returns popped off value
+   * @param key     target key
+   * @returns       value if it exists
    *
    * @see {@link Array.prototype.push}
    */
@@ -457,13 +462,32 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Append items to the array at the key
-   * Mutates the value at the key
+   * Pop the last element off the array at the key
    *
-   * Creates an entry for they key if non existed
+   * Delete the key if it now has no elements
    *
-   * @param key the key whose values to use
-   * @param values new elements to add to the array.
+   * @param key     target key
+   * @returns       value if it exists
+   *
+   * @see {@link Array.prototype.push}
+   */
+  popVacuum(key: K): V | undefined {
+    const gotten = this._map.get(key);
+    if (!gotten) return undefined;
+    const popped = gotten.pop();
+    if (!gotten.length) this._map.delete(key);
+    return popped;
+  }
+
+
+  /**
+   * Append values to the end of values-array at the key
+   *
+   * Creates the key if it didn't exist
+   *
+   * @param key       target key
+   * @param values    values to append
+   * @returns         number of values inserted
    *
    * @see {@link Array.prototype.push}
    */
@@ -479,14 +503,18 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
   /**
    * Concatenate the given arrays with the array at the key
+   *
    * Does not mutate or rereference the value at the key
    *
-   * @param key the key whose values to use
-   * @param values additional arrays and/or items to add to the end of the array.
+   * Concatenates the values with an empty array if the key did not exist
+   *
+   * @param key       target key
+   * @param values    values to concatenate
+   * @returns         concatenation result
    *
    * @see {@link Array.prototype.concat}
    */
-  concat(key: K, ...values: ConcatArray<V>[]): V[] {
+  concat(key: K, ...values: readonly ConcatArray<V>[]): V[] {
     const gotten = this._map.get(key);
     if (!gotten) return ([] as V[]).concat(...values);
     return gotten.concat(...values);
@@ -494,36 +522,73 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Reverse the order of all keys in the ArrayMap
+   * Create a new ArrayMap instance and reverse the order of its keys
    *
-   * Returns a new ArrayMap with the new ordering
-   *
-   * @param key the key whose values to use
+   * @param key       target get
+   * @returns         new ArrayMap instance with keys reversed
    *
    * @see {@link Array.prototype.reverse}
    */
   reverseKeys(): ArrayMap<K, V> {
-    return new ArrayMap(new Map(Array
+    const reversedEntries = Array
       .from(this._map.keys())
       .reverse()
-      .map(key => [key, this._map.get(key)!,])));
+      .map(key => [key, this._map.get(key)!,] as KeyValues<K, V>);
+    const reversedMap: Map<K, V[]> = new Map(reversedEntries);
+    return new ArrayMap<K, V>(reversedMap);
   }
 
 
   /**
+   * Reverse the order of the keys
    *
-   * Reverse the order of all values in the ArrayMap
+   * Mutates this ArrayMap instance in-place
    *
-   * Mutates array-values in-place
-   *
-   * Returns a reference to the original ArrayMap
-   *
-   * @param key the key whose values to use
-   * @returns reference to this reversed array
+   * @param key       target key
+   * @returns         the mutated ArrayMap instance
    *
    * @see {@link Array.prototype.reverse}
    */
-  reverseValues(): this {
+  reverseKeysMut(): this {
+    const keys = this.toKeys().reverse();
+    // delete and re-insert the maps keys in reversed order
+    keys.forEach(key => {
+      const values = this._map.get(key)!;
+      this._map.delete(key);
+      this._map.set(key, values);
+    });
+    return this;
+  }
+
+
+  /**
+   * Create a new ArrayMap instance and sort its values
+   *
+   * @param key       target key
+   * @returns         new ArrayMap instance with the values reversed
+   *
+   * @see {@link Array.prototype.reverse}
+   */
+  reverseValues(): ArrayMap<K, V> {
+    const reversed = new Map<K, V[]>();
+    for (const [key, values,] of this._map.entries()) {
+      reversed.set(key, Array.from(values).reverse());
+    }
+    return new ArrayMap(reversed);
+  }
+
+
+  /**
+   * Reverse each values-array
+   *
+   * Mutates this ArrayMap instance in-place
+   *
+   * @param key     target key
+   * @returns       the mutated ArrayMap instance
+   *
+   * @see {@link Array.prototype.reverse}
+   */
+  reverseValuesMut(): this {
     for (const values of this._map.values()) {
       values.reverse();
     }
@@ -532,13 +597,34 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Remove the first element of the array at the key and return it
+   * Remove and return the first element of the values-array at the key if it
+   * exists
    *
-   * @param key the key whose values to use
+   * @param key     target key
+   * @returns       value if it exists
    *
    * @see {@link Array.prototype.shift}
    */
   shift(key: K): V | undefined {
+    const gotten = this._map.get(key);
+    if (!gotten) return undefined;
+    const shifted = gotten.shift();
+    return shifted;
+  }
+
+
+  /**
+   * Remove and return the first element of the values-array at the key if it
+   * exists
+   *
+   * Delete the key if it's values-array has length zero
+   *
+   * @param key     target key
+   * @param key     value if it exists
+   *
+   * @see {@link Array.prototype.shift}
+   */
+  shiftVacuum(key: K): V | undefined {
     const gotten = this._map.get(key);
     if (!gotten) return undefined;
     const shifted = gotten.shift();
@@ -548,10 +634,13 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Unshift elements to the start of the aarray at the key
+   * Unshift elements to the start of the values-array at the key
    *
-   * @param key the key whose value to get
-   * @param values elements to insert at the start of the array.
+   * Create the key if it does not exit
+   *
+   * @param key       target key
+   * @param values    values to insert
+   * @returns         the number of items inserted
    *
    * @see {@link Array.prototype.unshift}
    */
@@ -566,9 +655,14 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
   /**
    * Return the first index of the element in the array at the key
    *
-   * @param key the key whose values to search
-   * @param searchElement value to search for
-   * @param fromIndex starting index to search from
+   * If the value is not found, returns -1
+   *
+   * If the key does not exist, returns -1
+   *
+   * @param key             target key
+   * @param searchElement   value to search for
+   * @param fromIndex       starting index to search from
+   * @returns               index of the element if found or -1
    *
    * @see {@link Array.prototype.indexOf}
    */
@@ -582,12 +676,16 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   *
    * Return the last index of the element in the array at the key
    *
-   * @param key the key whose values to search
-   * @param searchElement value to search for
-   * @param fromIndex starting index to search from
+   * If the value is not found, returns -1
+   *
+   * If the key does not exist, returns -1
+   *
+   * @param key             target key
+   * @param searchElement   value to search for
+   * @param fromIndex       ending index to start searching from
+   * @returns               index of the element if found or -1
    *
    * @see {@link Array.prototype.lastIndexOf}
    */
@@ -601,51 +699,80 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Do all entries resolve true for the given function?
+   * Do all entries (key-values pairs) resolve true for the predicate?
    *
-   * @param predicate testing function
-   * @param thisArg this value for the testing function
-   * @returns true if every entry resolves true
+   * @param predicate       test to execute on tuples
+   * @param thisArg         this value for the predicate fn
+   * @returns               true iff every entry resolves true
    *
    * @see {@link Array.prototype.every}
    */
   everyEntry<U extends V>(
-    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => entry is KeyValues<K, U>),
+    predicate: (
+      entry: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => entry is KeyValues<K, U>,
     thisArg?: any
   ): this is ArrayMap<K, U>;
   everyEntry(
-    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      entry: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean;
   everyEntry(
-    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      entry: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
-    const out = entries.every((entry, entryIndex) => predicate.call(thisArg, entry, entryIndex, entries));
+    const out = entries
+      .every((entry, entryIndex) => predicate
+        .call(thisArg, entry, entryIndex, entries));
     return out;
   }
 
 
   /**
-   * Do all tuples resolve true for the given function?
+   * Do all tuples (key-value pairs) resolve true for the predicate?
    *
-   * @param predicate testing function
-   * @param thisArg this value for the testing function
-   * @returns true if every tuple resolves true
+   * @param predicate       test to execute on tuples
+   * @param thisArg         this value for the predicate fn
+   * @returns               true iff every tuple resolves true
    *
    * @see {@link Array.prototype.every}
    */
   everyTuple<U extends V>(
-    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => tuple is KeyValue<K, U>),
+    predicate: (
+      tuple: KeyValue<K, V>,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => tuple is KeyValue<K, U>,
     thisArg?: any
   ): this is ArrayMap<K, U>;
   everyTuple(
-    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      tuple: KeyValue<K, V>,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean;
   everyTuple(
-    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      tuple: KeyValue<K, V>,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -658,24 +785,42 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Do all values resolve true for the given function?
+   * Do all values resolve true for the predicate?
    *
-   * @param predicate testing function
-   * @param thisArg this value for the testing function
-   * @returns true if every value resolves true
+   * @param predicate       test to execute on values
+   * @param thisArg         this value for the predicate fn
+   * @returns               true iff every value resolves true
    *
    * @see {@link Array.prototype.every}
    */
   everyValue<U extends V>(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => value is U),
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => value is U,
     thisArg?: any
   ): this is ArrayMap<K, U>;
   everyValue(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean;
   everyValue(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -688,79 +833,124 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Do all keys resolve true for the given function?
+   * Do all keys resolve true for the predicate?
    *
-   * @param predicate testing function
-   * @param thisArg this value for the testing function
-   * @returns true if every key resolves true
+   * @param predicate       test to execute on keys
+   * @param thisArg         this value for the predicate fn
+   * @returns               true iff every key resolves true
    *
    * @see {@link Array.prototype.every}
    */
   everyKey<L extends K>(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => key is L),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => key is L,
     thisArg?: any
   ): this is ArrayMap<L, K>;
   everyKey(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean;
   everyKey(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
     const out = entries
-      .every(([key, values,], entryIndex) => predicate.call(thisArg, key, values, entryIndex, entries));
+      .every(([key, values,], entryIndex) => predicate
+        .call(thisArg, key, values, entryIndex, entries));
     return out;
   }
 
 
   /**
-   * Do any of the entries resolve true for the given function?
+   * Do any of the entries (key-values pairs) resolve true for the predicate?
    *
-   * @param predicate testing function
-   * @param thisArg this value for the testing function
-   * @returns true if some entry resolves true
+   * @param predicate     test to execute on entries
+   * @param thisArg       this value for the predicate fn
+   * @returns             true iff any entry resolves true
    *
    * @see {@link Array.prototype.some}
    */
   someEntry<U extends V>(
-    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => entry is KeyValues<K, U>),
+    predicate: (
+      entry: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => entry is KeyValues<K, U>,
     thisArg?: any
   ): this is ArrayMap<K, U>;
   someEntry(
-    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      entry: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean;
   someEntry(
-    predicate: ((entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      entry: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
-    const out = entries.some((entry, entryIndex) => predicate.call(thisArg, entry, entryIndex, entries));
+    const out = entries
+      .some((entry, entryIndex) => predicate
+        .call(thisArg, entry, entryIndex, entries));
     return out;
   }
 
 
   /**
-   * Do any of tuples resolve true for the given function?
+   * Do any of the tuples (key-value pairs) resolve true for the predicate?
    *
-   * @param predicate testing function
-   * @param thisArg this value for the testing function
-   * @returns true if some tuple resolves true
+   * @param predicate     test to execute on tuples
+   * @param thisArg       this value for the predicate fn
+   * @returns             true iff any tuple resolves true
    *
    * @see {@link Array.prototype.some}
    */
   someTuple<U extends V>(
-    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => tuple is KeyValue<K, U>),
+    predicate: (
+      tuple: KeyValue<K, V>,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => tuple is KeyValue<K, U>,
     thisArg?: any
   ): this is ArrayMap<K, U>;
   someTuple(
-    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      tuple: KeyValue<K, V>,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean;
   someTuple(
-    predicate: ((tuple: KeyValue<K, V>, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      tuple: KeyValue<K, V>,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -773,24 +963,42 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Do any of values resolve true for the given function?
+   * Do any of the values resolve true for the given function?
    *
-   * @param predicate testing function
-   * @param thisArg this value for the testing function
-   * @returns true if some value resolves true
+   * @param predicate     test to execute on values
+   * @param thisArg       this value for the predicate fn
+   * @returns             true iff any value resolves true
    *
    * @see {@link Array.prototype.some}
    */
   someValue<U extends V>(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => value is U),
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => value is U,
     thisArg?: any
   ): this is ArrayMap<K, U>;
   someValue(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean;
   someValue(
-    predicate: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
@@ -805,27 +1013,43 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
   /**
    * Do any of the keys resolve true for the given function?
    *
-   * @param predicate testing function
-   * @param thisArg this value for the testing function
-   * @returns true if some key resolves true
+   * @param predicate     test to execute on keys
+   * @param thisArg       this value for the predicate fn
+   * @returns             true iff any key resolves true
    *
    * @see {@link Array.prototype.some}
    */
   someKey<L extends K>(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => key is L),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => key is L,
     thisArg?: any
   ): this is ArrayMap<L, K>;
   someKey(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean;
   someKey(
-    predicate: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): boolean {
     const entries = Array.from(ArrayMap.getMapEntries(this._map));
     const out = entries
-      .some(([key, values,], entryIndex) => predicate.call(thisArg, key, values, entryIndex, entries));
+      .some(([key, values,], entryIndex) => predicate
+        .call(thisArg, key, values, entryIndex, entries));
     return out;
   }
 
@@ -837,20 +1061,25 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap by mapping key--value-array tuples to new key--value-array tuples
+   * Create a new ArrayMap instance by mapping each entry (key-values pair) to
+   * a new entry which are collected and combined into the new ArrayMap instance
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param callbackfn    mapper to execute on entries
+   * @param thisArg       this value for the mapper fn
+   * @returns             new ArrayMap instance
    *
    * @see {@link Array.prototype.map}
    */
   mapEntries<L, U>(
-    callbackfn: (( value: (KeyValues<K, V>), entryIndex: number, entries: KeyValues<K, V>[]) => KeyValues<L, U>),
+    callbackfn: (
+      value: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => ROKeyValues<L, U>,
     thisArg?: any
   ): ArrayMap<L, U> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
-    const output: [L, U[]][] = source
+    const output: ROKeyValues<L, U>[] = source
       .map((item, entryIndex) => callbackfn
         .call(thisArg, item, entryIndex, source));
     return ArrayMap.fromEntries(output);
@@ -858,40 +1087,59 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap by mapping flattened key-value tuples to new key-value tuples
+   * Create a new ArrayMap instance by mapping each tuple (key-value pair) to a
+   * new tuple which are collected and combined into the new ArrayMap instance
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param callbackfn    mapper to execute on tuples
+   * @param thisArg       this value for the mapper fn
+   * @returns             new ArrayMap instance
    *
    * @see {@link Array.prototype.map}
    */
   mapTuples<L, U>(
-    callbackfn: (( value: (KeyValue<K, V>), entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => KeyValue<L, U>),
+    callbackfn: (
+      value: KeyValue<K, V>,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => ROKeyValue<L, U>,
     thisArg?: any
   ): ArrayMap<L, U> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
     // flatMap is not available in all environments
-    const output: [L, U][] = [];
+    const output: ROKeyValue<L, U>[] = [];
     source
       .forEach(([key, values,], entryIndex) => values
         .forEach((value, valueIndex) => output
-          .push(callbackfn.call(thisArg, [key, value,], entryIndex, valueIndex, source))));
+          .push(callbackfn.call(
+            thisArg,
+            [key, value,],
+            entryIndex,
+            valueIndex,
+            source
+          ))));
     return ArrayMap.fromTuples(output);
   }
 
 
   /**
-   * Create a new ArrayMap by mapping flattened values
+   * Create a new ArrayMap instance by mapping each value to a new value which
+   * to replace it on the new ArrayMap instance
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param callbackfn    mapper to execute on values
+   * @param thisArg       this value for the mapper fn
+   * @returns             new ArrayMap instance
    *
    * @see {@link Array.prototype.map}
    */
   mapValues<U>(
-    callbackfn: (value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => U,
+    callbackfn: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => U,
     thisArg?: any,
   ): ArrayMap<K, U> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -906,16 +1154,23 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap by mapping keys
+   * Create a new ArrayMap instance by mapping each key to a new key to be
+   * collected and combined into the new ArrayMap instance
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   *
+   * @param callbackfn    mapper to execute on keys
+   * @param thisArg       this value for the mapper fn
+   * @returns             new ArrayMap instance
    *
    * @see {@link Array.prototype.map}
    */
   mapKeys<L>(
-    callbackfn: (key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => L,
+    callbackfn: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => L,
     thisArg?: any
   ): ArrayMap<L, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
@@ -929,138 +1184,244 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap by filtering key--value-array tuples
+   * Create a new ArrayMap instance by keeping only entries (key-values pairs)
+   * that when called with the predicate fn return true
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param predicate     predicate fn to check against entries
+   * @param thisArg       this value for the predicate fn
+   * @returns             new ArrayMap instance with remaining entries
    *
    * @see {@link Array.prototype.filter}
    */
   filterEntries<U extends V>(
-    callbackfn: ((entry: (KeyValues<K, V>), entryIndex: number, entries: KeyValues<K, V>[]) => entry is KeyValues<K, U>),
+    predicate: (
+      entry: (KeyValues<K, V>),
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => entry is KeyValues<K, U>,
     thisArg?: any
   ): ArrayMap<K, U>;
   filterEntries(
-    callbackfn: (entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean,
+    predicate: (
+      entry: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
-  ): ArrayMap<K, V>
+  ): ArrayMap<K, V>;
   filterEntries(
-    callbackfn: (entry: KeyValues<K, V>, entryIndex: number, entries: KeyValues<K, V>[]) => boolean,
+    predicate: (
+      entry: KeyValues<K, V>,
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): ArrayMap<K, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
     const output: [K, V[]][] = source
-      .filter((entry, entryIndex) => callbackfn
+      .filter((entry, entryIndex) => predicate
         .call(thisArg, entry, entryIndex, source));
     return ArrayMap.fromEntries(output);
   }
 
 
   /**
-   * Create a new ArrayMap by filtering flattened key-value tuples
+   * Create a new ArrayMap instance by keeping only tuples (key-value pairs)
+   * that when called with the predicate fn return true
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param predicate     predicate fn to check against tuples
+   * @param thisArg       this value for the predicate fn
+   * @returns             new ArrayMap instance with remaining tuples
    *
    * @see {@link Array.prototype.filter}
    */
   filterTuples<U extends V>(
-    callbackfn: ((tuple: (KeyValue<K, V>), entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => tuple is KeyValue<K, U>),
+    predicate: (
+      tuple: (KeyValue<K, V>),
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => tuple is KeyValue<K, U>,
     thisArg?: any
   ): ArrayMap<K, U>;
   filterTuples(
-    callbackfn: ((tuple: (KeyValue<K, V>), entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      tuple: (KeyValue<K, V>),
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): ArrayMap<K, V>;
   filterTuples(
-    callbackfn: ((tuple: (KeyValue<K, V>), entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      tuple: (KeyValue<K, V>),
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): ArrayMap<K, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
-    const output: [K, V][] = [];
-    source.forEach(([key, values,], entryIndex) => values.forEach((value, valueIndex) => {
-      const tuple: [K, V] = [key, value,];
-      if (callbackfn.call(thisArg, tuple, entryIndex, valueIndex, source)) {
-        output.push(tuple);
-      }
-    }));
+    const output: KeyValue<K, V>[] = [];
+    source
+      .forEach(([key, values,], entryIndex) => values
+        .forEach((value, valueIndex) => {
+          const tuple: KeyValue<K, V> = [key, value,];
+          if (predicate.call(thisArg, tuple, entryIndex, valueIndex, source)) {
+            output.push(tuple);
+          }
+        }));
     return ArrayMap.fromTuples(output);
   }
 
 
   /**
-   * Create a new ArrayMap by filtering flattened values
+   * Create a new ArrayMap instance by keeping only values who that when called
+   * with the predicate fn return true
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param predicate     predicate fn to check against values
+   * @param thisArg       this value for the predicate fn
+   * @returns             new ArrayMap instance with remaining values
    *
    * @see {@link Array.prototype.filter}
    */
   filterValues<U extends V>(
-    callbackfn: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => value is U),
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => value is U,
     thisArg?: any
   ): ArrayMap<K, U>;
   filterValues(
-    callbackfn: ((value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): ArrayMap<K, V>;
   filterValues(
-    callbackfn: (value: V, key: K, entryIndex: number, valueIndex: number, entries: KeyValues<K, V>[]) => boolean,
+    predicate: (
+      value: V,
+      key: K,
+      entryIndex: number,
+      valueIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any,
   ): ArrayMap<K, V> {
     const source = Array.from(ArrayMap.getMapEntries(this._map));
-    const output: [K, V][] = [];
-    source.forEach(([key, values,], entryIndex) => values.forEach((value, valueIndex) => {
-      const tuple: [K, V] = [key, value,];
-      if (callbackfn.call(thisArg, value, key, entryIndex, valueIndex, source)) {
-        output.push(tuple);
-      }
-    }));
+    const output: KeyValue<K, V>[] = [];
+    source.forEach(([key, values,], entryIndex) => values
+      .forEach((value, valueIndex) => {
+        const tuple: [K, V] = [key, value,];
+        if (predicate.call(
+          thisArg,
+          value,
+          key,
+          entryIndex,
+          valueIndex,
+          source
+        )) {
+          output.push(tuple);
+        }
+      }));
     return ArrayMap.fromTuples(output);
   }
 
 
   /**
-   * Create a new ArrayMap by filtering keys
+   * Create a new ArrayMap instance by keeping only keys who that when called
+   * with the predicate fn return true
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param predicate     predicate fn to check against keys
+   * @param thisArg       this value for the predicate fn
+   * @returns             new ArrayMap instance with remaining keys
    *
    * @see {@link Array.prototype.filter}
    */
   filterKeys<L extends K>(
-    callbackfn: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): ArrayMap<L, V>;
   filterKeys(
-    callbackfn: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): ArrayMap<K, V>;
   filterKeys(
-    callbackfn: ((key: K, values: V[], entryIndex: number, entries: KeyValues<K, V>[]) => boolean),
+    predicate: (
+      key: K,
+      values: V[],
+      entryIndex: number,
+      entries: KeyValues<K, V>[]
+    ) => boolean,
     thisArg?: any
   ): ArrayMap<K, V> {
-    const source = Array.from(ArrayMap.getMapEntries(this._map));
-    const output: [K, V][] = [];
-    source.filter(([key, values,], entryIndex) =>  callbackfn.call(thisArg, key, values, entryIndex, source));
-    return ArrayMap.fromTuples(output);
+    const source: KeyValues<K, V>[] = Array.from(ArrayMap.getMapEntries(this._map));
+    const output: KeyValues<K, V>[] = source
+      .filter(([key, values,], entryIndex) => predicate
+        .call(thisArg, key, values, entryIndex, source));
+    return ArrayMap.fromEntries(output);
   }
 
 
   /**
-   * Mutate the ArrayMap by sorting keys in-place
+   * Create a new ArrayMap instance and sort its values
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param compareFn       sorting fn
+   * @param thisArg         this value for the sorting fn
+   * @returns               new ArrayMap instance with sorted values
    *
    * @see {@link Array.prototype.sort}
    */
   sortValues(
+    compareFn?: (a: V, b: V, key: K) => number,
+    thisArg?: any
+  ): ArrayMap<K, V> {
+    const map = new Map<K, V[]>();
+    const entries = Array.from(ArrayMap.getMapEntries(this._map));
+    for (const [key, values,] of entries) {
+      map.set(key, compareFn
+        ? Array
+          .from(values)
+          .sort((a, b) => compareFn.call(thisArg, a, b, key))
+        : Array
+          .from(values)
+          .sort()
+      );
+    }
+    return new ArrayMap<K, V>(map);
+  }
+
+
+  /**
+   * Sort the value-arrays
+   *
+   * Mutates this ArrayMap instance in-place
+   *
+   * @param compareFn       sorting fn
+   * @param thisArg         this value for the sorting fn
+   * @returns               new ArrayMap instance with sorted values
+   *
+   * @see {@link Array.prototype.sort}
+   */
+  sortValuesMut(
     compareFn?: (a: V, b: V, key: K) => number,
     thisArg?: any
   ): this {
@@ -1074,11 +1435,11 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Create a new ArrayMap by sorting keys
+   * Create a new ArrayMap instance and sort its keys
    *
-   * @param callbackfn transformation function
-   * @param thisArg `this` callback
-   * @returns new ArrayMap
+   * @param compareFn       sorting fn
+   * @param thisArg         this value for the sorting fn
+   * @returns               new ArrayMap instance with sorted keys
    *
    * @see {@link Array.prototype.sort}
    */
@@ -1087,7 +1448,9 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
     thisArg?: any,
   ): ArrayMap<K, V> {
     const keys = Array.from(this.keys());
-    if (compareFn) keys.sort((a, b) => compareFn.call(thisArg, a, b, this.get(a)!, this.get(b)!));
+    if (compareFn) keys
+      .sort((a, b) => compareFn
+        .call(thisArg, a, b, this.get(a)!, this.get(b)!));
     else keys.sort();
     const map = new Map(keys.map((key) => [key, this._map.get(key)!,]));
     return new ArrayMap(map);
@@ -1095,16 +1458,48 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Returns an iterator for entries in the map
+   * Sort the keys
+   *
+   * Mutates this ArrayMap instance in-place
+   *
+   * @param compareFn       sorting fn
+   * @param thisArg         this value for the sorting fn
+   * @returns               new ArrayMap instance with sorted keys
+   *
+   * @see {@link Array.prototype.sort}
    */
-  entries(): IterableIterator<[K, V[]]> {
+  sortKeysMut(
+    compareFn?: (a: K, b: K, aValues: V[], bValues: V[]) => number,
+    thisArg?: any,
+  ): this {
+    const keys = Array.from(this.keys());
+    if (compareFn) keys
+      .sort((a, b) => compareFn
+        .call(thisArg, a, b, this.get(a)!, this.get(b)!));
+    else keys.sort();
+    // reorder the arrays keys by deleting where they are and re-inserting at
+    // the end, in the sorted order
+    keys.forEach(key => {
+      const values = this._map.get(key)!;
+      this._map.delete(key);
+      this._map.set(key, values);
+    });
+    return this;
+  }
+
+
+  /**
+   * Get an iterator for entries (key-values pairs)
+   */
+  entries(): IterableIterator<KeyValues<K, V>> {
     return ArrayMap.getMapEntries(this._map);
   }
 
+
   /**
-   * Returns an iterator for tuples in the map
+   * Get an iterator for tuples (key-value pairs)
    */
-  * tuples(): IterableIterator<[K, V]> {
+  * tuples(): IterableIterator<KeyValue<K, V>> {
     for (const [key, values,] of ArrayMap.getMapEntries(this._map)) {
       for (const value of values) {
         yield [key, value,];
@@ -1112,22 +1507,17 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
     }
   }
 
-  /**
-   * Returns an iterator for the keys in the map
-   */
-  keys(): IterableIterator<K> {
-    return this._map.keys();
-  }
 
   /**
-   * Returns an iterator for the array-values in the map
+   * Get an iterator for the values-arrays
    */
   arrays(): IterableIterator<V[]> {
     return this._map.values();
   }
 
+
   /**
-   * Returns an iterator for the values in the map (flattened)
+   * Get an iterator for the values
    */
   * values(): IterableIterator<V> {
     for (const values of this._map.values()) {
@@ -1139,11 +1529,19 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Transform to entries
+   * Get an iterator for the keys
+   */
+  keys(): IterableIterator<K> {
+    return this._map.keys();
+  }
+
+
+  /**
+   * Create and return a new Array instance of the entries (key-values pairs)
    *
-   * Clones the entry value arrays
+   * Clones the entry values-arrays
    *
-   * @returns entries
+   * @returns     new Array instance of entries
    */
   toEntries(): KeyValues<K, V>[] {
     return Array.from(this.entries()).map(ArrayMap.cloneEntry);
@@ -1151,9 +1549,9 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Transform to tuples
+   * Create and return an Array of the tuples (key-value pairs)
    *
-   * @returns tuples
+   * @returns     new Array instance of tuples pairs
    */
   toTuples(): KeyValue<K, V>[] {
     return Array.from(this.tuples());
@@ -1161,19 +1559,9 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Transform to keys
+   * Create and return a new Array instance of the values-arrays
    *
-   * @returns keys
-   */
-  toKeys(): V[][] {
-    return Array.from(this.arrays());
-  }
-
-
-  /**
-   * Transform to tuples
-   *
-   * @returns array of arrays
+   * @returns     new Array instance of values-arrays
    */
   toArrays(): V[][] {
     return Array.from(this.arrays());
@@ -1181,9 +1569,9 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Transform to tuples
+   * Create and return a new Array instance of the values
    *
-   * @returns values
+   * @returns     new Array instance of the values
    */
   toValues(): V[] {
     return Array.from(this.values());
@@ -1191,11 +1579,21 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Return the underlying map of the ARrayMap
+   * Create and return a new Array instance of the keys
    *
-   * Clones the map and its entry arrays
+   * @returns     new Array instance of the keys
+   */
+  toKeys(): K[] {
+    return Array.from(this.keys());
+  }
+
+
+  /**
+   * Create and return a new Map instance of the entries (key-values pairs)
    *
-   * @returns map of entries
+   * Clones the ArrayMap instance's underlying map values-arrays
+   *
+   * @returns     new Map instance of entries
    */
   toMap(): Map<K, V[]> {
     return ArrayMap.cloneMap(this._map);
@@ -1203,7 +1601,7 @@ export class ArrayMap<K, V> implements ArrayMap<K, V> {
 
 
   /**
-   * Return the underlying map of the ARrayMap
+   * Get a reference to the underlying map
    */
   getMapRef(): Map<K, V[]> {
     return this._map;

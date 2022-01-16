@@ -272,19 +272,6 @@ describe('ArrayMap', () => {
         }
       });
     });
-
-    describe('fromEntriesByRef', () => {
-      it('should create an ArrayMap by referencing Entries', () => {
-        const group = ArrayMap.fromEntriesByRef(testEntries);
-
-        for (const entry of testEntries) {
-          const [expectedKey, expectedValues,] = entry;
-          expect(group.has(expectedKey)).toBeTruthy();
-          // expect refential equality
-          expect(group.get(expectedKey)!).toBe(expectedValues);
-        }
-      });
-    });
   });
 
   describe('prototype', () => {
@@ -458,6 +445,11 @@ describe('ArrayMap', () => {
           expect(group.length(key)).toBe(values.length);
         }
       });
+
+      it('should return undefined if the key does not exist', () => {
+        const group = ArrayMap.fromEntries(testEntries);
+        expect(group.length('__doesnt__exist__')).toBeUndefined();
+      });
     });
 
     describe('pop', () => {
@@ -474,6 +466,37 @@ describe('ArrayMap', () => {
       it('should return undefined if they key does not exist', () => {
         const group = ArrayMap.fromEntries(testEntries);
         expect(group.pop('__key_does_not_exist__')).toBeUndefined();
+      });
+      it('should not delete the key if it has no values left', () => {
+        const group = new ArrayMap<string, string>(new Map([['a', ['b',],],]));
+        expect(group.size).toBe(1);
+        expect(group.shift('a')).toBe('b');
+        expect(group.size).toBe(1);
+        expect(group.get('a')).toEqual([]);
+      });
+    });
+
+    describe('popVacuum', () => {
+      it('should extract the last item from the array of values at the key', () => {
+        const group = ArrayMap.fromEntries(testEntries);
+        for (const entry of testEntries) {
+          const [key, values,] = entry;
+          for (let i = values.length - 1; i >= 0; i -= 1) {
+            expect(group.pop(key)).toEqual(values[i]);
+          }
+          expect(group.length(key)).toBe(0);
+        }
+      });
+      it('should return undefined if they key does not exist', () => {
+        const group = ArrayMap.fromEntries(testEntries);
+        expect(group.pop('__key_does_not_exist__')).toBeUndefined();
+      });
+      it('should delete the key if it has no values left', () => {
+        const group = new ArrayMap<string, string>(new Map([['a', ['b',],],]));
+        expect(group.size).toBe(1);
+        expect(group.popVacuum('a')).toBe('b');
+        expect(group.size).toBe(0);
+        expect(group.get('a')).toEqual(undefined);
       });
     });
 
@@ -522,21 +545,48 @@ describe('ArrayMap', () => {
     });
 
     describe('reverseKeys', () => {
-      it('should create a new ArrayMap with the keys in reverse order', () => {
+      it('should clone the ArrayMap and reverse it\'s keys', () => {
         const group = ArrayMap.fromEntries(testEntries);
         const reversed = group.reverseKeys();
+        expect(group).not.toBe(reversed);
         const reversedKeys = Array.from(reversed.keys());
         expect(reversedKeys.reverse()).toEqual(testEntries.map(([k,]) => k));
       });
     });
 
-    describe('reverseValues', () => {
-      it('should mutate the ArrayMap in place, reversing all values orderds', () => {
+    describe('reverseKeysMut', () => {
+      it('should reverse the ArrayMap instance\'s keys', () => {
         const group = ArrayMap.fromEntries(testEntries);
-        group.reverseValues();
+        const reversed = group.reverseKeysMut();
+        expect(group).toBe(reversed);
+        const reversedKeys = reversed.toKeys();
+        expect(reversedKeys.reverse()).toEqual(testEntries.map(([k,]) => k));
+      });
+    });
+
+    describe('reverseValues', () => {
+      it('should clone the ArrayMap instance and reverse it\'s values', () => {
+        const group = ArrayMap.fromEntries(testEntries);
+        const reversed = group.reverseValues();
+        expect(reversed).not.toBe(group);
         for (const entry of testEntries) {
           const [key, values,] = entry;
-          expect(group.get(key)!.reverse()).toEqual(values);
+          expect(Array.from(reversed.get(key)!).reverse()).toEqual(values);
+          expect(Array.from(reversed.get(key)!).reverse()).toEqual(group.get(key));
+          expect(reversed.get(key)).not.toBe(group.get(key));
+        }
+      });
+    });
+
+    describe('reverseValuesMut', () => {
+      it('should reverse the ArrayMap instance\'s values', () => {
+        const group = ArrayMap.fromEntries(testEntries);
+        const reversed = group.reverseValuesMut();
+        expect(reversed).toBe(group);
+        for (const entry of testEntries) {
+          const [key, values,] = entry;
+          expect(Array.from(reversed.get(key)!).reverse()).toEqual(values);
+          expect(reversed.get(key)).toBe(group.get(key));
         }
       });
     });
@@ -555,6 +605,37 @@ describe('ArrayMap', () => {
       it('should return undefined if used on a key that does not exist', () => {
         const group = ArrayMap.fromEntries(testEntries);
         expect(group.pop('__key_does_not_exist__')).toBeUndefined();
+      });
+      it('should not delete the key if it has no values left', () => {
+        const group = new ArrayMap<string, string>(new Map([['a', ['b',],],]));
+        expect(group.size).toBe(1);
+        expect(group.shift('a')).toBe('b');
+        expect(group.size).toBe(1);
+        expect(group.get('a')).toEqual([]);
+      });
+    });
+
+    describe('shiftVacuum', () => {
+      it('should extract a value from the beginning of a key\'s array', () => {
+        const group = ArrayMap.fromEntries(testEntries);
+        for (const entry of testEntries) {
+          const [key, values,] = entry;
+          for (let i = 0; i < values.length; i += 1) {
+            expect(group.shift(key)).toEqual(values[i]);
+          }
+          expect(group.length(key)).toBe(0);
+        }
+      });
+      it('should return undefined if used on a key that does not exist', () => {
+        const group = ArrayMap.fromEntries(testEntries);
+        expect(group.pop('__key_does_not_exist__')).toBeUndefined();
+      });
+      it('should delete the key if it has no values left', () => {
+        const group = new ArrayMap<string, string>(new Map([['a', ['b',],],]));
+        expect(group.size).toBe(1);
+        expect(group.shiftVacuum('a')).toBe('b');
+        expect(group.size).toBe(0);
+        expect(group.get('a')).toEqual(undefined);
       });
     });
 
@@ -936,87 +1017,471 @@ describe('ArrayMap', () => {
     });
 
     describe('mapEntries', () => {
-      // TODO
+      it('should map entries', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2',],],
+          ['e', ['3',],],
+          ['h', [],],
+        ]);
+        const actual: ArrayMap<string, number> = group.mapEntries((entry) => {
+          const [key, values,] = entry;
+          const outry = [
+            '_' + key + '_',
+            values.map(Number),
+          ] as const;
+          return outry;
+        });
+        expect(actual.size).toBe(group.size);
+        for (const [key, values,] of group) {
+          const expectedKey = '_' + key + '_';
+          const expectedValues = values.map(Number);
+          expect(actual.has(expectedKey)).toBeTruthy();
+          expect(actual.get(expectedKey)).toEqual(expectedValues);
+        }
+      });
     });
 
     describe('mapTuples', () => {
-      // TODO
+      it('should map tuples', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2',],],
+          ['e', ['3',],],
+          ['h', [],],
+        ]);
+        const actual: ArrayMap<string, number> = group.mapTuples(
+          (entry, ei, vi) => {
+            const [key, value,] = entry;
+            const outry = [
+              '_' + key + '_' + ei + '_' + vi + '_',
+              Number(value),
+            ] as const;
+            return outry;
+          });
+        let count = 0;
+        let ei = -1;
+        for (const [key, values,] of group) {
+          ei += 1;
+          let vi = -1;
+          for (const value of values) {
+            vi += 1;
+            count += 1;
+            const expectedKey = '_' + key + '_' + ei + '_' + vi + '_';
+            const expectedValue = Number(value);
+            expect(actual.has(expectedKey)).toBeTruthy();
+            expect(actual.get(expectedKey)).toEqual([expectedValue,]);
+          }
+        }
+        expect(actual.size).toBe(count);
+      });
     });
 
     describe('mapValues', () => {
-      // TODO
+      it('should map values', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2',],],
+          ['e', ['3',],],
+          ['h', [],],
+        ]);
+        const actual: ArrayMap<string, string> = group.mapValues(
+          (value, key, ei, vi) => {
+            return '_' + key + '_' + value + '_' + ei + '_' + vi + '_';
+          });
+        expect(actual.size).toBe(group.size - 1);
+        let ei = -1;
+        for (const [key, values,] of group) {
+          ei += 1;
+          if (!values.length) continue;
+          const expectedKey = key;
+          expect(actual.has(expectedKey)).toBeTruthy();
+          expect(actual.get(expectedKey)).toEqual(values.map((value, vi) =>
+            '_' + key + '_' + value + '_' + ei + '_' + vi + '_'
+          ));
+        }
+      });
     });
 
     describe('mapKeys', () => {
-      // TODO
+      it('should map keys', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2',],],
+          ['e', ['3',],],
+          ['h', [],],
+        ]);
+        const actual: ArrayMap<string, string> = group.mapKeys(
+          (key, values, ei) => {
+            return '_' + key + '_' + ei + '_' + values.length + '_';
+          });
+        expect(actual.size).toBe(group.size);
+        let ei = -1;
+        for (const [key, values,] of group) {
+          ei += 1;
+          const expectedKey = '_' + key + '_' + ei + '_' + values.length + '_';
+          expect(actual.has(expectedKey)).toBeTruthy();
+          expect(actual.get(expectedKey)).toEqual(values);
+        }
+      });
     });
 
     describe('filterEntries', () => {
-      // TODO
+      it('should filter entries', () => {
+        const group = ArrayMap.fromEntries<string, number>([
+          ['a', [1, 2, 3,],],
+          ['b', [3, 4,],],
+          ['c', [5,],],
+          ['d', [],],
+        ]);
+        const actual = group.filterEntries(([k, v,]) =>
+          (k !== 'b')
+          && (v.length <= 2)
+        );
+        expect(actual.size).toBe(2);
+        expect(actual.has('c')).toBeTruthy();
+        expect(actual.has('d')).toBeTruthy();
+        expect(actual.get('c')).toEqual([5,]);
+        expect(actual.get('d')).toEqual([]);
+      });
     });
 
     describe('filterTuples', () => {
-      // TODO
+      it('should filter tuples', () => {
+        const group = ArrayMap.fromEntries<string, number>([
+          ['a', [1, 2, 3,],],
+          ['b', [3, 4,],],
+          ['c', [5,],],
+          ['d', [],],
+        ]);
+        const actual = group.filterTuples(([k, v,]) =>
+          (k !== 'b')
+          && (v % 2 === 0)
+        );
+        expect(actual.size).toBe(1);
+        expect(actual.has('a')).toBeTruthy();
+        expect(actual.get('a')).toEqual([2,]);
+      });
     });
 
     describe('filterValues', () => {
-      // TODO
+      it('should filter values', () => {
+        const group = ArrayMap.fromEntries<string, number>([
+          ['a', [1, 2, 3,],],
+          ['b', [3, 4,],],
+          ['c', [5,],],
+          ['d', [],],
+        ]);
+        const actual = group.filterValues((v) => (v % 2 === 0));
+        expect(actual.size).toBe(2);
+        expect(actual.has('a')).toBeTruthy();
+        expect(actual.has('b')).toBeTruthy();
+        expect(actual.get('a')).toEqual([2,]);
+        expect(actual.get('b')).toEqual([4,]);
+      });
     });
 
     describe('filterKeys', () => {
-      // TODO
-    });
-
-    describe('sortValues', () => {
-      // TODO
+      it('should filter keys', () => {
+        const group = ArrayMap.fromEntries<string, number>([
+          ['a', [1, 2, 3,],],
+          ['b', [3, 4,],],
+          ['c', [5,],],
+          ['d', [],],
+        ]);
+        const actual = group.filterKeys((k) => (k === 'b'));
+        expect(actual.size).toBe(1);
+        expect(actual.has('b')).toBeTruthy();
+        expect(actual.get('b')).toEqual([3, 4,]);
+      });
     });
 
     describe('sortKeys', () => {
-      // TODO
+      it('should immutably sort keys', () => {
+        const group = ArrayMap.fromEntries<number, string>([
+          [1, ['1', '2', '3',],],
+          [2, ['3', '4',],],
+          [3, ['5',],],
+          [4, [],],
+        ]);
+        // numerically descending
+        const actual = group.sortKeys((a, b) => - a + b);
+        expect(actual).not.toBe(group);
+        expect(actual).not.toEqual(group);
+        expect(actual.size).toBe(group.size);
+        expect(Array.from(actual.keys())).toEqual([4, 3, 2, 1,]);
+        expect(actual.get(1)).toEqual(['1', '2', '3',]);
+        expect(actual.get(2)).toEqual(['3', '4',]);
+        expect(actual.get(3)).toEqual(['5',]);
+        expect(actual.get(4)).toEqual([]);
+      });
+    });
+
+    describe('sortKeysMut', () => {
+      it('should mutably sort keys', () => {
+        const group = ArrayMap.fromEntries<number, string>([
+          [1, ['1', '2', '3',],],
+          [2, ['3', '4',],],
+          [3, ['5',],],
+          [4, [],],
+        ]);
+        // numerically descending
+        const actual = group.sortKeysMut((a, b) => - a + b);
+        expect(actual).toBe(group);
+        expect(actual.size).toBe(group.size);
+        expect(Array.from(actual.keys())).toEqual([4, 3, 2, 1,]);
+        expect(actual.get(1)).toEqual(['1', '2', '3',]);
+        expect(actual.get(2)).toEqual(['3', '4',]);
+        expect(actual.get(3)).toEqual(['5',]);
+        expect(actual.get(4)).toEqual([]);
+      });
+    });
+
+    describe('sortValues', () => {
+      it('should immutably sort values', () => {
+        const group = ArrayMap.fromEntries<string, number>([
+          ['a', [1, 2, 3,],],
+          ['b', [3, 4,],],
+          ['c', [5,],],
+          ['d', [],],
+        ]);
+        // numerically descending
+        const actual = group.sortValues((a, b) => - a + b);
+        expect(actual).not.toBe(group);
+        expect(actual).not.toEqual(group);
+        expect(actual.size).toBe(group.size);
+        expect(actual.get('a')).toEqual([3, 2, 1,]);
+        expect(actual.get('b')).toEqual([4, 3,]);
+        expect(actual.get('c')).toEqual([5,]);
+        expect(actual.get('d')).toEqual([]);
+      });
+    });
+
+    describe('sortValuesMut', () => {
+      it('should mutably sort values', () => {
+        const group = ArrayMap.fromEntries<string, number>([
+          ['a', [1, 2, 3,],],
+          ['b', [3, 4,],],
+          ['c', [5,],],
+          ['d', [],],
+        ]);
+        // numerically descending
+        const actual = group.sortValuesMut((a, b) => - a + b);
+        expect(actual).toBe(group);
+        expect(actual.get('a')).toEqual([3, 2, 1,]);
+        expect(actual.get('b')).toEqual([4, 3,]);
+        expect(actual.get('c')).toEqual([5,]);
+        expect(actual.get('d')).toEqual([]);
+      });
     });
 
     describe('entries', () => {
-      // TODO
+      it('should return an iterator of the ArrayMap\'s entries', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        const exp = [
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ];
+        const actual = group.entries();
+        for (const entry of actual) {
+          expect(entry).toEqual(exp.shift());
+        }
+        expect(exp.length).toBe(0);
+      });
     });
 
     describe('tuples', () => {
-      // TODO
+      it('should return an iterator of the ArrayMap\'s tuples', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        const exp = [
+          ['a', '1',],
+          ['a', '2',],
+          ['a', '3',],
+          ['b', '3',],
+          ['b', '4',],
+          ['c', '5',],
+        ];
+        const actual = group.tuples();
+        for (const tuple of actual) {
+          expect(tuple).toEqual(exp.shift());
+        }
+        expect(exp.length).toBe(0);
+      });
     });
 
     describe('keys', () => {
-      // TODO
+      it('should return an iterator of the ArrayMap\'s keys', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        const exp = [
+          'a',
+          'b',
+          'c',
+          'd',
+        ];
+        const actual = group.keys();
+        for (const key of actual) {
+          expect(key).toBe(exp.shift());
+        }
+        expect(exp.length).toBe(0);
+      });
     });
 
     describe('arrays', () => {
-      // TODO
+      it('should return an iterator of the ArrayMap\'s value-arrays', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        const exp = [
+          ['1', '2', '3',],
+          ['3', '4',],
+          ['5',],
+          [],
+        ];
+        const actual = group.arrays();
+        for (const value of actual) {
+          expect(value).toEqual(exp.shift());
+        }
+        expect(exp.length).toBe(0);
+      });
     });
 
     describe('toEntries', () => {
-      // TODO
+      it('should return an iterator of the ArrayMap\'s entries', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        expect(group.toEntries()).toEqual([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+      });
     });
 
     describe('toTuples', () => {
-      // TODO
+      it('should return an array of the ArrayMap\'s tuples', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        expect(group.toTuples()).toEqual([
+          ['a', '1',],
+          ['a', '2',],
+          ['a', '3',],
+          ['b', '3',],
+          ['b', '4',],
+          ['c', '5',],
+        ]);
+      });
     });
 
     describe('toKeys', () => {
-      // TODO
+      it('should return an array of the ArrayMap\'s keys', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        expect(group.toKeys()).toEqual([
+          'a',
+          'b',
+          'c',
+          'd',
+        ]);
+      });
     });
 
     describe('toArrays', () => {
-      // TODO
+      it('should return an array of the ArrayMap\'s value-arrays', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        expect(group.toArrays()).toEqual([
+          ['1', '2', '3',],
+          ['3', '4',],
+          ['5',],
+          [],
+        ]);
+      });
     });
 
     describe('toValues', () => {
-      // TODO
+      it('should return an array of the ArrayMap\'s values', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        expect(group.toValues()).toEqual([
+          '1',
+          '2',
+          '3',
+          '3',
+          '4',
+          '5',
+        ]);
+      });
     });
 
     describe('toMap', () => {
-      // TODO
+      it('should return a map of the ArrayMap\'s entries', () => {
+        const group = ArrayMap.fromEntries<string, string>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        const actual = group.toMap();
+        expect(actual instanceof Map).toBeTruthy();
+        expect(actual).not.toBe(group);
+        expect(actual).toEqual(new Map([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]));
+      });
     });
 
     describe('getMapRef', () => {
-      // TODO
+      it('should return a reference to the internal ArrayMap\'s map', () => {
+        const map = new Map<string, string[]>([
+          ['a', ['1', '2', '3',],],
+          ['b', ['3', '4',],],
+          ['c', ['5',],],
+          ['d', [],],
+        ]);
+        const group: ArrayMap<string, string> = new ArrayMap(map);
+        const ref = group.getMapRef();
+        expect(ref).toBe(map);
+      });
     });
   });
 });
