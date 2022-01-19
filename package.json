@@ -1,7 +1,7 @@
 {
   "name": "@nkp/array-map",
   "sideEffects": false,
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Zero dependency utility for working with one-to-many maps. ArrayMap is similar an es6 Map but the values are arrays.",
   "main": "cjs/index.js",
   "module": "es/index.js",
