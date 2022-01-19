@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.8 - 2022-01-16
+
+### Changed
+
+- Updated `package.json` url's
+
 ## 0.0.7 - 2022-01-16
 
 ### Added
