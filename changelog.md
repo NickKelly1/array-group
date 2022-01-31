@@ -1,8 +1,14 @@
 # Changelog
 
+## 1.0.1 - 2021-01-30
+
+### Changed
+
+- Devop: updated build process, CI & exports
+
 ## 1.0.0 - 2021-01-18
 
-- First major release
+- Major release
 
 ## 0.0.8 - 2022-01-18
 
